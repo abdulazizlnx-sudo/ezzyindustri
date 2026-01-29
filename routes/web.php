@@ -40,25 +40,7 @@ use App\Livewire\Manajerial\Quality\PDCAEdit;
 
 
 Route::get('/', function () {
-    return "App is running! Time: " . now()->format('Y-m-d H:i:s');
-});
-
-Route::get('/test-db', function () {
-    try {
-        \DB::connection()->getPdo();
-        return "Database connection: OK";
-    } catch (\Exception $e) {
-        return "Database connection: ERROR - " . $e->getMessage();
-    }
-});
-
-Route::get('/test-env', function () {
-    return [
-        'APP_ENV' => config('app.env'),
-        'APP_DEBUG' => config('app.debug'),
-        'DB_CONNECTION' => config('database.default'),
-        'DB_HOST' => config('database.connections.mysql.host'),
-    ];
+    return redirect('/login');
 });
 
 Route::get('/documentation', function () {
