@@ -1,0 +1,157 @@
+<div>
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title">Pareto Analysis - NG Types</h5>
+                <div>
+                    <button wire:click="exportPdf" class="btn btn-danger">
+                        <i class="bi bi-file-pdf"></i> Export PDF
+                    </button>
+                    <button wire:click="exportExcel" class="btn btn-success">
+                        <i class="bi bi-file-excel"></i> Export Excel
+                    </button>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" wire:model.live="startDate" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" wire:model.live="endDate" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Machine</label>
+                    <select wire:model.live="selectedMachine" class="form-select">
+                        <option value="">All Machines</option>
+                        @foreach($machines as $machine)
+                            <option value="{{ $machine }}">{{ $machine }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Product</label>
+                    <select wire:model.live="selectedProduct" class="form-select">
+                        <option value="">All Products</option>
+                        @foreach($products as $product)
+                            <option value="{{ $product }}">{{ $product }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 mt-3">
+                    <label class="form-label">Shift</label>
+                    <select wire:model.live="selectedShift" class="form-select">
+                        <option value="">All Shifts</option>
+                        <option value="1">Shift 1</option>
+                        <option value="2">Shift 2</option>
+                        <option value="3">Shift 3</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div wire:ignore>
+                <div id="paretoChart"></div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            const options = {
+                series: [{
+                    name: 'Defect Count',
+                    type: 'bar',
+                    data: [10, 8]
+                }, {
+                    name: 'Cumulative %',
+                    type: 'line',
+                    data: [55.56, 100]
+                }],
+                chart: {
+                    height: 350,
+                    type: 'line',
+                },
+                stroke: {
+                    width: [0, 4]
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 4,
+                        horizontal: false,
+                    }
+                },
+                dataLabels: {
+                    enabled: true
+                },
+                xaxis: {
+                    categories: ['baret', 'gores']
+                },
+                yaxis: [{
+                    title: {
+                        text: 'Defect Count'
+                    }
+                }, {
+                    opposite: true,
+                    title: {
+                        text: 'Cumulative %'
+                    },
+                    labels: {
+                        formatter: function(val) {
+                            return val.toFixed(0) + '%'
+                        }
+                    }
+                }],
+                title: {
+                    text: 'Pareto Chart - NG Types'
+                }
+            };
+
+            const chart = new ApexCharts(document.querySelector("#paretoChart"), options);
+            chart.render();
+
+            // Listen for updates
+            Livewire.on('chartDataUpdated', (data) => {
+                const defects = data.map(item => item.defect);
+                const counts = data.map(item => item.count);
+
+                chart.updateOptions({
+                    xaxis: {
+                        categories: defects
+                    }
+                });
+
+                chart.updateSeries([{
+                    name: 'Defect Count',
+                    data: counts
+                }]);
+            });
+
+            // Simplified PDF export handler
+            Livewire.on('exportPdf', () => {
+                window.location.href = '{{ route("pareto.pdf") }}';
+            });
+
+            // Capture chart handler
+            Livewire.on('captureChartForPdf', () => {
+                const chartElement = document.querySelector("#paretoChart");
+                
+                html2canvas(chartElement).then(canvas => {
+                    const chartImage = canvas.toDataURL('image/png');
+                    @this.saveChartAndExportPdf(chartImage);
+                });
+            });
+
+            // Add PDF handler
+            Livewire.on('openPdfInNewTab', url => {
+                window.open(url, '_blank');
+            });
+        });
+    </script>
+    @endpush
+</div>
