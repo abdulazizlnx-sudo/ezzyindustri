@@ -20,6 +20,7 @@ class Dashboard extends Component
     public $totalDowntime;
     public $recentDowntimes;
     public $recentProblems;
+    public $qualityRate = 0; // Initialize with default value
     
     // Tambah property baru
     public $selectedPeriod = 'today';
@@ -34,28 +35,50 @@ class Dashboard extends Component
     {
         $this->setPeriod($this->selectedPeriod);
         $this->loadDashboardData();
+        
+        // Debug logging
+        Log::info('Dashboard mounted', [
+            'selectedPeriod' => $this->selectedPeriod,
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'todayProduction' => $this->todayProduction,
+            'todayDefects' => $this->todayDefects,
+            'qualityRate' => $this->qualityRate ?? 'not_set'
+        ]);
     }
 
     public function setPeriod($period)
     {
         $this->selectedPeriod = $period;
         
-        $fixedDate = Carbon::create(2025, 4, 3);
+        // Use actual current date instead of fixed date
+        $currentDate = Carbon::now();
         
         switch($period) {
             case 'today':
-                $this->startDate = $fixedDate->copy()->startOfDay();
-                $this->endDate = $fixedDate->copy()->endOfDay(); // Ubah ke end of day
+                $this->startDate = $currentDate->copy()->startOfDay();
+                $this->endDate = $currentDate->copy()->endOfDay();
                 break;
             case 'week':
-                $this->startDate = $fixedDate->copy()->startOfWeek();
-                $this->endDate = $fixedDate->copy()->endOfWeek();
+                $this->startDate = $currentDate->copy()->startOfWeek();
+                $this->endDate = $currentDate->copy()->endOfWeek();
                 break;
             case 'month':
-                $this->startDate = $fixedDate->copy()->startOfMonth();
-                $this->endDate = $fixedDate->copy()->endOfMonth();
+                $this->startDate = $currentDate->copy()->startOfMonth();
+                $this->endDate = $currentDate->copy()->endOfMonth();
                 break;
         }
+        
+        // Reload data when period changes
+        $this->loadDashboardData();
+        
+        // Debug logging
+        Log::info('Period changed', [
+            'period' => $period,
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'qualityRate' => $this->qualityRate ?? 'not_set'
+        ]);
     }   
 
     public function loadDashboardData()
@@ -68,14 +91,32 @@ class Dashboard extends Component
 
     protected function loadBasicData()
     {
-        // Get today's production data
+        // Get production data for the selected period
         $this->todayProduction = Production::where('user_id', Auth::id())
-            ->whereDate('created_at', $this->startDate)
+            ->whereBetween('created_at', [$this->startDate, $this->endDate])
             ->sum('total_production');
 
         $this->todayDefects = Production::where('user_id', Auth::id())
-            ->whereDate('created_at', $this->startDate)
+            ->whereBetween('created_at', [$this->startDate, $this->endDate])
             ->sum('defect_count');
+
+        // Calculate quality rate for the period
+        if ($this->todayProduction > 0) {
+            $goodProducts = $this->todayProduction - $this->todayDefects;
+            $this->qualityRate = ($goodProducts / $this->todayProduction) * 100;
+        } else {
+            $this->qualityRate = 0;
+        }
+
+        // Debug logging
+        Log::info('Basic data loaded', [
+            'userId' => Auth::id(),
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'todayProduction' => $this->todayProduction,
+            'todayDefects' => $this->todayDefects,
+            'qualityRate' => $this->qualityRate
+        ]);
 
         // Get active production
         $this->activeProduction = Production::where('user_id', Auth::id())
@@ -108,12 +149,22 @@ class Dashboard extends Component
 
     protected function loadOeeData()
     {
-        $this->oeeData = OeeRecord::whereHas('production', function($query) {
+        $oeeRecords = OeeRecord::whereHas('production', function($query) {
                 $query->where('user_id', Auth::id());
             })
             ->whereBetween('date', [$this->startDate, $this->endDate])
-            ->latest()
-            ->first();
+            ->get();
+
+        if ($oeeRecords->isNotEmpty()) {
+            $this->oeeData = (object) [
+                'availability_rate' => $oeeRecords->avg('availability_rate'),
+                'performance_rate' => $oeeRecords->avg('performance_rate'),
+                'quality_rate' => $oeeRecords->avg('quality_rate'),
+                'oee_score' => $oeeRecords->avg('oee_score')
+            ];
+        } else {
+            $this->oeeData = null;
+        }
     }
 
     protected function loadTargetRealization()
@@ -169,6 +220,12 @@ class Dashboard extends Component
             ->select('date', 'oee_score', 'availability_rate', 'performance_rate', 'quality_rate')
             ->orderBy('date', 'asc')
             ->get();
+    }
+
+    public function refreshDashboard()
+    {
+        $this->loadDashboardData();
+        $this->dispatch('dashboardRefreshed');
     }
 
     public function render()

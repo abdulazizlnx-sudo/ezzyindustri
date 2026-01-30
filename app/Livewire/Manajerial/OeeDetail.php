@@ -72,13 +72,25 @@ class OeeDetail extends Component
             ->orderBy('date')
             ->get();
     
-        return [
-            'labels' => $records->pluck('date')->map(fn($date) => Carbon::parse($date)->format('d/m/Y H:i')),
-            'availability' => $records->pluck('availability_rate'),
-            'performance' => $records->pluck('performance_rate'),
-            'quality' => $records->pluck('quality_rate'),
-            'oee' => $records->pluck('oee_score')
+        // Ensure we have data and format it properly
+        $chartData = [
+            'labels' => $records->isNotEmpty() 
+                ? $records->pluck('date')->map(fn($date) => Carbon::parse($date)->format('d/m/Y'))
+                : ['No Data'],
+            'availability' => $records->isNotEmpty() ? $records->pluck('availability_rate') : [0],
+            'performance' => $records->isNotEmpty() ? $records->pluck('performance_rate') : [0],
+            'quality' => $records->isNotEmpty() ? $records->pluck('quality_rate') : [0],
+            'oee' => $records->isNotEmpty() ? $records->pluck('oee_score') : [0]
         ];
+        
+        // Log for debugging
+        Log::info('Chart Data Generated', [
+            'machine_id' => $this->machine->id,
+            'records_count' => $records->count(),
+            'chart_data' => $chartData
+        ]);
+        
+        return $chartData;
     }
 
     public function render()

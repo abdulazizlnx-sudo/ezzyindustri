@@ -49,7 +49,9 @@ class ImageUploadController extends Controller
             return response()->json([
                 'success' => true,  
                 'url' => $result['url'],
-                'public_id' => $result['public_id']
+                'public_id' => $result['public_id'],
+                'version' => $result['version'] ?? null,
+                'url_with_version' => $result['url_with_version'] ?? $result['url']
             ]);
         } catch (\Exception $e) {
             Log::error('Upload error: ' . $e->getMessage());

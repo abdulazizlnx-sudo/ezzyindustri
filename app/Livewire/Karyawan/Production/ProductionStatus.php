@@ -37,7 +37,7 @@ class ProductionStatus extends Component
         if ($this->activeProduction) {
             $masterSop = Sop::where('product_id', $this->activeProduction->product_id)
                           ->where('kategori', 'quality')
-                          ->where('is_active', true)
+                          ->where('approval_status', 'approved')
                           ->first();
     
             if ($masterSop) {
@@ -195,7 +195,7 @@ class ProductionStatus extends Component
             'shift' => $production->shift_id,
             'batch_number' => $production->batch_number,
             'product_name' => $production->product,
-            // hapus product_code dari sini
+            'product_code' => $production->product_code ?: 'N/A', // Tambahkan product_code
             'total_production' => $production->total_output ?? 0,
             'total_ng' => 0,
             'ng_percentage' => '0%'
@@ -250,7 +250,7 @@ class ProductionStatus extends Component
                 'shift' => $this->ngReport['shift'],
                 'batch_number' => $this->ngReport['batch_number'],
                 'product_name' => $this->ngReport['product_name'],
-                // hapus product_code dari sini
+                'product_code' => $this->ngReport['product_code'], // Tambahkan product_code
                 'total_production' => $this->ngReport['total_production'],
                 'total_ng' => $this->ngReport['total_ng'],
                 'ng_percentage' => $this->ngReport['ng_percentage'],

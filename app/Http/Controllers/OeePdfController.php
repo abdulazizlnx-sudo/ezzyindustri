@@ -12,16 +12,24 @@ class OeePdfController extends Controller
 {
     public function generateDashboardPdf(Request $request)
     {
-        $startDate = $request->startDate;
-        $endDate = $request->endDate;
-        $machines = Machine::with(['oeeRecords' => function($query) use ($startDate, $endDate) {
+        $startDate = $request->startDate ?? now()->startOfMonth()->format('Y-m-d');
+        $endDate = $request->endDate ?? now()->format('Y-m-d');
+        $selectedShift = $request->selectedShift;
+        
+        $query = Machine::with(['oeeRecords' => function($query) use ($startDate, $endDate, $selectedShift) {
             $query->whereBetween('date', [$startDate, $endDate]);
-        }])->get();
+            if ($selectedShift) {
+                $query->where('shift_id', $selectedShift);
+            }
+        }]);
+        
+        $machines = $query->get();
 
         $pdf = Pdf::loadView('pdf.oee-pdf', [
             'machines' => $machines,
             'startDate' => $startDate,
-            'endDate' => $endDate
+            'endDate' => $endDate,
+            'selectedShift' => $selectedShift
         ]);
 
         return $pdf->stream("oee-report-{$startDate}-to-{$endDate}.pdf");

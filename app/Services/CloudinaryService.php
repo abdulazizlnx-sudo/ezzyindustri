@@ -66,7 +66,9 @@ class CloudinaryService
             return [
                 'success' => true,
                 'url' => $result['secure_url'],
-                'public_id' => $result['public_id']
+                'public_id' => $result['public_id'],
+                'version' => $result['version'] ?? null,
+                'url_with_version' => $this->getUrlWithVersion($result['public_id'], $result['version'] ?? null)
             ];
 
         } catch (\Exception $e) {
@@ -82,6 +84,42 @@ class CloudinaryService
                 'error' => $e->getMessage()
             ];
         }
+    }
+
+    public function getUrl($publicId, $version = null)
+    {
+        if (!$this->cloudinary) {
+            return null;
+        }
+
+        $cloudName = config('services.cloudinary.cloud_name');
+        $url = "https://res.cloudinary.com/{$cloudName}/image/upload/";
+        
+        if ($version) {
+            $url .= "v{$version}/";
+        }
+        
+        $url .= $publicId;
+        
+        return $url;
+    }
+
+    public function getUrlWithVersion($publicId, $version = null)
+    {
+        if (!$this->cloudinary) {
+            return null;
+        }
+
+        $cloudName = config('services.cloudinary.cloud_name');
+        $url = "https://res.cloudinary.com/{$cloudName}/image/upload/";
+        
+        if ($version) {
+            $url .= "v{$version}/";
+        }
+        
+        $url .= $publicId;
+        
+        return $url;
     }
 
     public function delete($publicId)

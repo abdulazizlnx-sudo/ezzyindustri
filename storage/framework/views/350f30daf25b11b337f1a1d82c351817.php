@@ -18,10 +18,10 @@
         formData.append('file', file);
         this.isUploading = true;
         
-        fetch('{{ route('upload.image') }}', {
+        fetch('<?php echo e(route('upload.image')); ?>', {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
             },
             body: formData
         })
@@ -39,11 +39,10 @@
             if (data.success) {
                 console.log('Upload successful:', {
                     url: data.url,
-                    public_id: data.public_id,
-                    url_with_version: data.url_with_version
+                    public_id: data.public_id
                 });
-                @this.set('cloudinary_url', data.url_with_version || data.url);
-                @this.set('cloudinary_id', data.public_id);
+                window.Livewire.find('<?php echo e($_instance->getId()); ?>').set('cloudinary_url', data.url);
+                window.Livewire.find('<?php echo e($_instance->getId()); ?>').set('cloudinary_id', data.public_id);
             } else {
                 throw new Error(data.error || 'Terjadi kesalahan saat upload');
             }
@@ -61,19 +60,40 @@
     <div class="col-md-6">
         <label class="form-label">Parameter Name</label>
         <input type="text" class="form-control" wire:model="judul">
-        @error('judul') <span class="text-danger">{{ $message }}</span> @enderror
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['judul'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-md-6">
         <label class="form-label">Step Order</label>
         <input type="number" class="form-control" wire:model="urutan">
-        @error('urutan') <span class="text-danger">{{ $message }}</span> @enderror
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['urutan'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-12">
         <label class="form-label">Description</label>
         <textarea class="form-control" wire:model="deskripsi" rows="3"></textarea>
-        @error('deskripsi') <span class="text-danger">{{ $message }}</span> @enderror
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['deskripsi'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-md-6">
@@ -89,58 +109,93 @@
             <option value="time">Time</option>
             <option value="other">Other</option>
         </select>
-        @error('measurement_type') <span class="text-danger">{{ $message }}</span> @enderror
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['measurement_type'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-md-6">
         <label class="form-label">Measurement Unit</label>
         <select class="form-select" wire:model="measurement_unit">
             <option value="">Select Unit</option>
-            @if($measurement_type === 'length')
+            <!--[if BLOCK]><![endif]--><?php if($measurement_type === 'length'): ?>
                 <option value="mm">Millimeter (mm)</option>
                 <option value="cm">Centimeter (cm)</option>
                 <option value="m">Meter (m)</option>
-            @elseif($measurement_type === 'diameter')
+            <?php elseif($measurement_type === 'diameter'): ?>
                 <option value="mm">Millimeter (mm)</option>
                 <option value="cm">Centimeter (cm)</option>
-            @elseif($measurement_type === 'weight')
+            <?php elseif($measurement_type === 'weight'): ?>
                 <option value="g">Gram (g)</option>
                 <option value="kg">Kilogram (kg)</option>
-            @elseif($measurement_type === 'temperature')
+            <?php elseif($measurement_type === 'temperature'): ?>
                 <option value="°C">Celsius (°C)</option>
                 <option value="°F">Fahrenheit (°F)</option>
-            @elseif($measurement_type === 'pressure')
+            <?php elseif($measurement_type === 'pressure'): ?>
                 <option value="Bar">Bar</option>
                 <option value="PSI">PSI</option>
-            @elseif($measurement_type === 'angle')
+            <?php elseif($measurement_type === 'angle'): ?>
                 <option value="degree">Degree (°)</option>
-            @elseif($measurement_type === 'time')
+            <?php elseif($measurement_type === 'time'): ?>
                 <option value="s">Second (s)</option>
                 <option value="min">Minute (min)</option>
                 <option value="hour">Hour</option>
-            @elseif($measurement_type === 'other')
+            <?php elseif($measurement_type === 'other'): ?>
                 <option value="unit">Unit</option>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
         </select>
-        @error('measurement_unit') <span class="text-danger">{{ $message }}</span> @enderror
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['measurement_unit'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-md-6">
         <label class="form-label">Standard Value</label>
         <input type="text" class="form-control" wire:model="nilai_standar">
-        @error('nilai_standar') <span class="text-danger">{{ $message }}</span> @enderror
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['nilai_standar'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-md-6">
         <label class="form-label">Min Tolerance</label>
         <input type="text" class="form-control" wire:model="toleransi_min">
-        @error('toleransi_min') <span class="text-danger">{{ $message }}</span> @enderror
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['toleransi_min'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-md-6">
         <label class="form-label">Max Tolerance</label>
         <input type="text" class="form-control" wire:model="toleransi_max">
-        @error('toleransi_max') <span class="text-danger">{{ $message }}</span> @enderror
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['toleransi_max'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-md-6">
@@ -157,8 +212,22 @@
                 <option value="shift">Shift</option>
             </select>
         </div>
-        @error('interval_value') <span class="text-danger">{{ $message }}</span> @enderror
-        @error('interval_unit') <span class="text-danger">{{ $message }}</span> @enderror
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['interval_value'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
+        <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['interval_unit'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-12">
@@ -176,19 +245,18 @@
             <small class="text-muted ms-2">Uploading image...</small>
         </div>
 
-        @if($cloudinary_url)
+        <!--[if BLOCK]><![endif]--><?php if($cloudinary_url): ?>
             <div class="mt-2 position-relative">
-                <img src="{{ $cloudinary_url }}?t={{ time() }}" 
+                <img src="<?php echo e($cloudinary_url); ?>" 
                      class="img-thumbnail" 
-                     style="max-height: 200px"
-                     @load="$dispatch('imageLoaded')">
+                     style="max-height: 200px">
                 <button type="button" 
                         class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
                         wire:click="removeImage">
                     <i class="bi bi-x"></i>
                 </button>
             </div>
-        @endif
+        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="col-12">
@@ -198,9 +266,10 @@
                 Cancel
             </button>
             <button type="button" class="btn btn-primary" 
-                    wire:click="{{ $isEditing ? 'update' : 'store' }}">
-                {{ $isEditing ? 'Update' : 'Save' }}
+                    wire:click="<?php echo e($isEditing ? 'update' : 'store'); ?>">
+                <?php echo e($isEditing ? 'Update' : 'Save'); ?>
+
             </button>
         </div>
     </div>
-</div>
+</div><?php /**PATH /home/abdulazizurrohman/Downloads/11-EzzyIndustri-ftur-PDCA/resources/views/livewire/manajerial/sop/partials/_quality-form.blade.php ENDPATH**/ ?>

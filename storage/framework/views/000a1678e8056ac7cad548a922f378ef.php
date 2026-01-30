@@ -71,7 +71,7 @@
                         </ol>
                     </div>
                     <div class="col-md-6">
-                        <img src="/assets/images/features/start-production.png" alt="Start Production Screen" class="img-fluid rounded shadow">
+                        <img src="/assets/img/mulaiproduksi.png" alt="Start Production Screen" class="img-fluid rounded shadow">
                     </div>
                 </div>
             </div>
@@ -89,7 +89,7 @@
                         </ol>
                     </div>
                     <div class="col-md-6">
-                        <img src="/assets/images/features/monitoring-dashboard.png" alt="Monitoring Dashboard" class="img-fluid rounded shadow">
+                        <img src="/assets/img/Checksheetproduksi.png" alt="Monitoring Dashboard" class="img-fluid rounded shadow">
                     </div>
                 </div>
             </div>
@@ -108,7 +108,7 @@
                         </ol>
                     </div>
                     <div class="col-md-6">
-                        <img src="/assets/images/features/problem-report.png" alt="Problem Report Form" class="img-fluid rounded shadow">
+                        <img src="/assets/img/reportproblem.png" alt="Problem Report Form" class="img-fluid rounded shadow">
                     </div>
                 </div>
             </div>

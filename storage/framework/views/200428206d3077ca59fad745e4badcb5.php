@@ -44,6 +44,12 @@
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button wire:click="refreshData" class="btn btn-primary d-block">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
             </div>
         </div>
     </div>

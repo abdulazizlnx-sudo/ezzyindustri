@@ -46,7 +46,11 @@
 <body>
     <div class="header">
         <h2>Laporan Overall Equipment Effectiveness (OEE)</h2>
-        <p>Periode: {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
+        <p>Periode: {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}
+        @if($selectedShift)
+            | Shift: {{ App\Models\Shift::find($selectedShift)->name ?? 'All Shifts' }}
+        @endif
+        </p>
     </div>
 
     <table>
@@ -62,19 +66,26 @@
         <tbody>
             @foreach($machines as $machine)
             <tr>
-                <td>{{ $machine['name'] }}</td>
-                <td class="{{ $machine['availability_rate'] < 60 ? 'bg-danger' : ($machine['availability_rate'] < 85 ? 'bg-warning' : 'bg-success') }}">
-                    {{ $machine['availability_rate'] }}%
-                </td>
-                <td class="{{ $machine['performance_rate'] < 60 ? 'bg-danger' : ($machine['performance_rate'] < 85 ? 'bg-warning' : 'bg-success') }}">
-                    {{ $machine['performance_rate'] }}%
-                </td>
-                <td class="{{ $machine['quality_rate'] < 60 ? 'bg-danger' : ($machine['quality_rate'] < 85 ? 'bg-warning' : 'bg-success') }}">
-                    {{ $machine['quality_rate'] }}%
-                </td>
-                <td class="{{ $machine['oee_score'] < 60 ? 'bg-danger' : ($machine['oee_score'] < 85 ? 'bg-warning' : 'bg-success') }}">
-                    {{ $machine['oee_score'] }}%
-                </td>
+                <td>{{ $machine->name }}</td>
+                @if($machine->oeeRecords->isNotEmpty())
+                    @php
+                        $latestRecord = $machine->oeeRecords->last();
+                    @endphp
+                    <td class="{{ $latestRecord->availability_rate < 60 ? 'bg-danger' : ($latestRecord->availability_rate < 85 ? 'bg-warning' : 'bg-success') }}">
+                        {{ number_format($latestRecord->availability_rate, 2) }}%
+                    </td>
+                    <td class="{{ $latestRecord->performance_rate < 60 ? 'bg-danger' : ($latestRecord->performance_rate < 85 ? 'bg-warning' : 'bg-success') }}">
+                        {{ number_format($latestRecord->performance_rate, 2) }}%
+                    </td>
+                    <td class="{{ $latestRecord->quality_rate < 60 ? 'bg-danger' : ($latestRecord->quality_rate < 85 ? 'bg-warning' : 'bg-success') }}">
+                        {{ number_format($latestRecord->quality_rate, 2) }}%
+                    </td>
+                    <td class="{{ $latestRecord->oee_score < 60 ? 'bg-danger' : ($latestRecord->oee_score < 85 ? 'bg-warning' : 'bg-success') }}">
+                        {{ number_format($latestRecord->oee_score, 2) }}%
+                    </td>
+                @else
+                    <td colspan="4" style="text-align: center; color: #6c757d;">No OEE Data Available</td>
+                @endif
             </tr>
             @endforeach
         </tbody>

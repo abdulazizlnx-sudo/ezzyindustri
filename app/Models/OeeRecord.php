@@ -74,13 +74,20 @@ class OeeRecord extends Model
         $this->good_output = $production->good_output ?? 0;
         $this->defect_count = $production->defect_count ?? 0;
         
+        // Set ideal cycle time from production
+        $this->ideal_cycle_time = $production->cycle_time ?? 10;
+        
         // Calculate OEE components
         $this->availability_rate = $this->calculateAvailability();
         $this->performance_rate = $this->calculatePerformance();
         $this->quality_rate = $this->calculateQuality();
         
         // Calculate final OEE score
-        $this->oee_score = ($this->availability_rate * $this->performance_rate * $this->quality_rate) * 100;
+        // OEE = (Availability × Performance × Quality) / 10000
+        $this->oee_score = ($this->availability_rate * $this->performance_rate * $this->quality_rate) / 10000;
+        
+        // Ensure OEE score doesn't exceed 100%
+        $this->oee_score = min($this->oee_score, 100);
         
         $this->save();
         
@@ -89,9 +96,13 @@ class OeeRecord extends Model
 
     private function calculateAvailability()
     {
-        $plannedTime = $this->planned_production_time ?? 480; // Default 8 hours
+        $plannedTime = $this->planned_production_time ?? 480; // Default 8 hours in minutes
         $actualOperatingTime = $plannedTime - $this->total_downtime;
-        return $actualOperatingTime > 0 ? $actualOperatingTime / $plannedTime : 0;
+        
+        // Ensure we don't exceed planned time
+        $actualOperatingTime = min($actualOperatingTime, $plannedTime);
+        
+        return $plannedTime > 0 ? ($actualOperatingTime / $plannedTime) * 100 : 0;
     }
 
     private function calculatePerformance()
@@ -99,11 +110,27 @@ class OeeRecord extends Model
         if (!$this->total_output || !$this->ideal_cycle_time || !$this->operating_time) {
             return 0;
         }
-        return ($this->total_output * $this->ideal_cycle_time) / ($this->operating_time * 60);
+        
+        // Performance = (Total Output × Ideal Cycle Time) / Operating Time × 100
+        // Note: ideal_cycle_time should be in the same time unit as operating_time
+        // If operating_time is in minutes and ideal_cycle_time is in seconds, convert accordingly
+        $idealTotalTime = $this->total_output * $this->ideal_cycle_time;
+        
+        // If ideal_cycle_time is in seconds and operating_time is in minutes
+        if ($this->ideal_cycle_time < 1) {
+            // Assume ideal_cycle_time is in minutes
+            $performance = ($idealTotalTime / $this->operating_time) * 100;
+        } else {
+            // Assume ideal_cycle_time is in seconds, convert operating_time to seconds
+            $performance = ($idealTotalTime / ($this->operating_time * 60)) * 100;
+        }
+        
+        // Cap at 100% to prevent impossible values
+        return min($performance, 100);
     }
 
     private function calculateQuality()
     {
-        return $this->total_output > 0 ? ($this->good_output / $this->total_output) : 0;
+        return $this->total_output > 0 ? ($this->good_output / $this->total_output) * 100 : 0;
     }
 }

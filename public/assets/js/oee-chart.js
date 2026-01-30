@@ -1,7 +1,15 @@
 (function() {
     function initChart(chartData) {
         const chartElement = document.getElementById('oeeChart');
-        if (!chartElement || !chartData) return null;
+        if (!chartElement) {
+            console.error('Chart element not found');
+            return null;
+        }
+        
+        if (!chartData || !chartData.labels || chartData.labels.length === 0) {
+            console.error('No chart data available');
+            return null;
+        }
 
         const options = {
             series: [
@@ -14,7 +22,7 @@
                 height: 350,
                 type: 'line',
                 zoom: { enabled: false },
-                animations: { enabled: false }
+                animations: { enabled: true, duration: 300 }
             },
             dataLabels: { enabled: false },
             stroke: { curve: 'straight', width: 2 },
@@ -35,12 +43,23 @@
                 floating: true,
                 offsetY: -25,
                 offsetX: -5
+            },
+            noData: {
+                text: 'No OEE Data Available',
+                align: 'center',
+                verticalAlign: 'middle'
             }
         };
 
-        const chart = new ApexCharts(chartElement, options);
-        chart.render();
-        return chart;
+        try {
+            const chart = new ApexCharts(chartElement, options);
+            chart.render();
+            console.log('Chart rendered successfully');
+            return chart;
+        } catch (error) {
+            console.error('Error rendering chart:', error);
+            return null;
+        }
     }
 
     function updateChart(chart, newData) {

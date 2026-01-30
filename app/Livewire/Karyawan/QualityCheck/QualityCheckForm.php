@@ -217,7 +217,6 @@ public function saveNGData()
     {
         $qualitySop = Sop::where('product_id', $this->production->product_id)
                          ->where('kategori', 'quality')
-                         ->where('is_active', true)
                          ->where('approval_status', 'approved')
                          ->with(['steps' => function($query) {
                              $query->orderBy('urutan', 'asc');
@@ -257,9 +256,9 @@ public function saveNGData()
             ->get();
             
         // Calculate progress before converting to array
-        if ($this->sop) {
-            $interval = $this->sop->interval ?? 10;
-            $target = $this->sop->target ?? 80;
+        if ($this->sop && $this->sop->steps->isNotEmpty()) {
+            $interval = $this->sop->steps->first()->interval_value ?? 10;
+            $target = $this->production->target_per_shift ?? 80;
             $this->totalChecksNeeded = ceil($target / $interval);
             $this->currentProgress = $qualityChecks->count();
         }

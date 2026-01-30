@@ -197,7 +197,7 @@
                             formData.append('file', blob, 'diagram.png');
                             formData.append('upload_preset', 'fishbone_diagrams');
                             
-                            fetch('https://api.cloudinary.com/v1_1/dncabigef/image/upload', {
+                            fetch('https://api.cloudinary.com/v1_1/dlmm3yrkz/image/upload', {
                                 method: 'POST',
                                 body: formData
                             })

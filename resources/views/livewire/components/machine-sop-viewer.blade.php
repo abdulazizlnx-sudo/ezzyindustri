@@ -91,7 +91,7 @@
                                         </div>
                                     @elseif($step->cloudinary_id)
                                         <div class="step-image">
-                                            <img src="https://res.cloudinary.com/dncabigef/image/upload/v1/{{ $step->cloudinary_id }}" 
+                                            <img src="https://res.cloudinary.com/dlmm3yrkz/image/upload/v1769779119/{{ $step->cloudinary_id }}" 
                                                  alt="Step Image" 
                                                  class="img-fluid"
                                                  style="max-height: 80px; cursor: pointer;"

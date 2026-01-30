@@ -23,8 +23,23 @@ class ParetoAnalysis extends Component
 
     public function mount()
     {
-        $this->startDate = now()->subMonth()->format('Y-m-d');
-        $this->endDate = now()->format('Y-m-d');
+        // Check if dates are in query string for URL persistence
+        if (request()->has('start_date')) {
+            $this->startDate = request()->get('start_date');
+        } else {
+            $this->startDate = now()->subMonth()->format('Y-m-d');
+        }
+        
+        if (request()->has('end_date')) {
+            $this->endDate = request()->get('end_date');
+        } else {
+            $this->endDate = now()->format('Y-m-d');
+        }
+        
+        // Get filter parameters from URL if present
+        $this->selectedMachine = request()->get('machine', '');
+        $this->selectedProduct = request()->get('product', '');
+        $this->selectedShift = request()->get('shift', '');
         
         // Get unique machines and products
         $this->machines = NGReport::distinct('machine_name')->pluck('machine_name');
@@ -49,40 +64,65 @@ class ParetoAnalysis extends Component
 
     public function render()
     {
+        // Ensure chart data is available on render
+        if (!$this->chartData) {
+            $this->updateChart();
+        }
+        
         return view('livewire.manajerial.quality.pareto-analysis');
+    }
+
+    public function refreshData()
+    {
+        $this->updateChart();
+        $this->dispatch('dataRefreshed');
     }
 
     public function exportPdf()
     {
-        $service = new QualityAnalysisService();
-        $paretoData = $service->getParetoData(
-            $this->startDate,
-            $this->endDate,
-            $this->selectedMachine,
-            $this->selectedProduct,
-            $this->selectedShift
-        );
-    
-        session([
-            'pareto_export_params' => [
-                'paretoData' => $paretoData,
-                'startDate' => $this->startDate,
-                'endDate' => $this->endDate,
-                'machine' => $this->selectedMachine,
-                'product' => $this->selectedProduct,
-                'shift' => $this->selectedShift
-            ]
-        ]);
-    
-        // Instead of redirect, dispatch an event
-        $this->dispatch('openPdfInNewTab', route('pareto.pdf'));
+        // Dispatch event to trigger PDF export with current parameters
+        $this->dispatch('exportPdf');
+    }
+
+    public function getChartData()
+    {
+        if (!$this->chartData) {
+            $this->updateChart();
+        }
+        return $this->chartData ? $this->chartData->toArray() : [];
     }
 
     public function updated($field)
     {
         if (in_array($field, ['startDate', 'endDate', 'selectedMachine', 'selectedProduct', 'selectedShift'])) {
             $this->updateChart();
+            // Update URL to reflect current filters
+            $this->updateUrl();
         }
+    }
+    
+    private function updateUrl()
+    {
+        $params = [];
+        
+        if ($this->startDate) {
+            $params['start_date'] = $this->startDate;
+        }
+        if ($this->endDate) {
+            $params['end_date'] = $this->endDate;
+        }
+        if ($this->selectedMachine) {
+            $params['machine'] = $this->selectedMachine;
+        }
+        if ($this->selectedProduct) {
+            $params['product'] = $this->selectedProduct;
+        }
+        if ($this->selectedShift) {
+            $params['shift'] = $this->selectedShift;
+        }
+        
+        $queryString = !empty($params) ? '?' . http_build_query($params) : '';
+        $this->dispatch('urlUpdated', $queryString);
     }
 
     public function exportExcel()

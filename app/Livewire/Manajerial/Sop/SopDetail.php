@@ -27,6 +27,7 @@ class SopDetail extends Component
     public $stepToDelete;
     public $cloudinary_url;
     public $cloudinary_id;
+    public $cloudinary_version; // Add version property
 
     // Quality check properties
     public $nilai_standar;
@@ -125,6 +126,13 @@ class SopDetail extends Component
                 'gambar_path' => $this->cloudinary_url,
                 'cloudinary_id' => $this->cloudinary_id
             ];
+
+            // Store version separately if available
+            if ($this->cloudinary_version) {
+                // Store version in a separate column or as part of cloudinary_id
+                $data['cloudinary_id'] = $this->cloudinary_id;
+                // We'll handle version in the URL generation
+            }
 
             if ($this->sop->kategori === 'quality') {
                 $data = array_merge($data, [

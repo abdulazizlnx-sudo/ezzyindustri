@@ -23,8 +23,7 @@ class Sop extends Model
 
     protected $casts = [
         'created_date' => 'datetime',
-        'approved_at' => 'datetime',
-        'interval_check' => 'integer'
+        'approved_at' => 'datetime'
     ];
 
     public function steps()

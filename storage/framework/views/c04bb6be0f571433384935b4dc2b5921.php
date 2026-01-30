@@ -4,6 +4,9 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="card-title">Pareto Analysis - NG Types</h5>
                 <div>
+                    <button wire:click="refreshData" class="btn btn-primary">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
                     <button wire:click="exportPdf" class="btn btn-danger">
                         <i class="bi bi-file-pdf"></i> Export PDF
                     </button>
@@ -62,16 +65,33 @@
     <?php $__env->startPush('scripts'); ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
-        document.addEventListener('livewire:initialized', () => {
+        let chartInstance = null;
+        
+        function initializeChart(data) {
+            if (!data || data.length === 0) {
+                data = [{ defect: 'No Data', count: 0 }];
+            }
+            
+            const defects = data.map(item => item.defect);
+            const counts = data.map(item => item.count);
+            
+            // Calculate cumulative percentages
+            const totalCount = counts.reduce((sum, count) => sum + count, 0);
+            let cumulativeCount = 0;
+            const cumulativePercentages = counts.map(count => {
+                cumulativeCount += count;
+                return totalCount > 0 ? (cumulativeCount / totalCount) * 100 : 0;
+            });
+            
             const options = {
                 series: [{
                     name: 'Defect Count',
                     type: 'bar',
-                    data: [10, 8]
+                    data: counts
                 }, {
                     name: 'Cumulative %',
                     type: 'line',
-                    data: [55.56, 100]
+                    data: cumulativePercentages
                 }],
                 chart: {
                     height: 350,
@@ -90,7 +110,7 @@
                     enabled: true
                 },
                 xaxis: {
-                    categories: ['baret', 'gores']
+                    categories: defects
                 },
                 yaxis: [{
                     title: {
@@ -112,29 +132,43 @@
                 }
             };
 
-            const chart = new ApexCharts(document.querySelector("#paretoChart"), options);
-            chart.render();
+            const chartElement = document.querySelector("#paretoChart");
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            chartInstance = new ApexCharts(chartElement, options);
+            chartInstance.render();
+        }
+        
+        document.addEventListener('livewire:initialized', () => {
+            // Initialize chart with current data
+            window.Livewire.find('<?php echo e($_instance->getId()); ?>').call('getChartData').then(result => {
+                initializeChart(result);
+            });
 
             // Listen for updates
             Livewire.on('chartDataUpdated', (data) => {
-                const defects = data.map(item => item.defect);
-                const counts = data.map(item => item.count);
-
-                chart.updateOptions({
-                    xaxis: {
-                        categories: defects
-                    }
-                });
-
-                chart.updateSeries([{
-                    name: 'Defect Count',
-                    data: counts
-                }]);
+                initializeChart(data);
             });
 
-            // Simplified PDF export handler
+            // Add URL update handler
+            Livewire.on('urlUpdated', (queryString) => {
+                const newUrl = window.location.pathname + queryString;
+                window.history.replaceState({}, '', newUrl);
+            });
+
+            // PDF export handler
             Livewire.on('exportPdf', () => {
-                window.location.href = '<?php echo e(route("pareto.pdf")); ?>';
+                const params = new URLSearchParams({
+                    start_date: window.Livewire.find('<?php echo e($_instance->getId()); ?>').startDate,
+                    end_date: window.Livewire.find('<?php echo e($_instance->getId()); ?>').endDate,
+                    machine: window.Livewire.find('<?php echo e($_instance->getId()); ?>').selectedMachine || '',
+                    product: window.Livewire.find('<?php echo e($_instance->getId()); ?>').selectedProduct || '',
+                    shift: window.Livewire.find('<?php echo e($_instance->getId()); ?>').selectedShift || ''
+                });
+                window.open(`<?php echo e(route('pareto.pdf')); ?>?${params.toString()}`, '_blank');
             });
 
             // Capture chart handler

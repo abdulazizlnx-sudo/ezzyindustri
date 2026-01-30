@@ -52,6 +52,14 @@ class UserSeeder extends Seeder
             ]);
             $karyawan->assignRole('karyawan');
 
+            // Create gratis/free trial user
+            $gratis = User::create([
+                'name' => 'User Gratis',
+                'email' => 'gratis@example.com',
+                'password' => Hash::make('password'),
+            ]);
+            $gratis->assignRole('karyawan');
+
             $this->command->info('Users created successfully.');
 
         } catch (\Exception $e) {

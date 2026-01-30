@@ -47,6 +47,9 @@ class ProductionReport extends Component
 
         $productions = $query->get();
         $chartData = $this->prepareChartData($productions);
+        
+        // Dispatch chart data update for immediate rendering
+        $this->dispatch('updateChartData', $chartData);
     
         return view('livewire.manajerial.production.production-report', [
             'productions' => $productions,
@@ -92,6 +95,12 @@ class ProductionReport extends Component
                 ]
             ]
         ];
+    }
+
+    public function refreshData()
+    {
+        // Force refresh of data and charts
+        $this->dispatch('dataRefreshed');
     }
 
     public function exportPDF()

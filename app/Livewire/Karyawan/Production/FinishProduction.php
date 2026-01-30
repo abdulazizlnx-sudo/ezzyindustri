@@ -74,7 +74,7 @@ class FinishProduction extends Component
         'shift' => '',
         'batch_number' => '',
         'product_name' => '',
-        // hapus product_code dari sini
+        'product_code' => '', // Tambahkan kembali product_code
         'total_production' => 0,
         'total_ng' => 0,
         'ng_percentage' => '',
@@ -105,7 +105,7 @@ class FinishProduction extends Component
         $this->ngReport['shift'] = $this->production->shift->id;
         $this->ngReport['batch_number'] = $this->production->batch_number;
         $this->ngReport['product_name'] = $this->production->product;
-        // hapus baris product_code
+        $this->ngReport['product_code'] = $this->production->product_code ?: 'N/A'; // Tambahkan product_code
         $this->ngReport['total_production'] = $this->totalProduction;
         $this->ngReport['total_ng'] = $this->totalReject;
         $this->ngReport['ng_percentage'] = number_format(($this->totalReject / $this->totalProduction) * 100, 2) . '%';
@@ -140,7 +140,7 @@ class FinishProduction extends Component
             'shift' => $this->ngReport['shift'],
             'batch_number' => $this->ngReport['batch_number'],
             'product_name' => $this->ngReport['product_name'],
-            // hapus product_code
+            'product_code' => $this->ngReport['product_code'], // Tambahkan product_code
             'total_production' => $this->ngReport['total_production'],
             'total_ng' => $this->ngReport['total_ng'],
             'ng_percentage' => str_replace('%', '', $this->ngReport['ng_percentage']),
@@ -212,12 +212,23 @@ class FinishProduction extends Component
             
             // Hitung rate
             // Pastikan perhitungan OEE benar
-            $availabilityRate = $operatingTime > 0 ? ($operatingTime / $plannedTime) * 100 : 0;
-            $performanceRate = $operatingTime > 0 ? ($this->totalProduction * $this->production->cycle_time / $operatingTime) * 100 : 0;
+            $availabilityRate = $plannedTime > 0 ? ($operatingTime / $plannedTime) * 100 : 0;
+            
+            // Performance calculation: (Total Output × Ideal Cycle Time) / Operating Time × 100
+            $performanceRate = ($operatingTime > 0 && $this->production->cycle_time > 0) 
+                ? (($this->totalProduction * $this->production->cycle_time) / ($operatingTime * 60)) * 100 
+                : 0;
+            
+            // Cap performance at 100% to prevent impossible values
+            $performanceRate = min($performanceRate, 100);
+            
             $qualityRate = $this->totalProduction > 0 ? (($this->totalProduction - $totalDefects) / $this->totalProduction) * 100 : 0;
             
             // Hitung OEE Score
             $oeeScore = ($availabilityRate * $performanceRate * $qualityRate) / 10000;
+            
+            // Ensure OEE doesn't exceed 100%
+            $oeeScore = min($oeeScore, 100);
 
             $oeeRecord->update([
                 'operating_time' => $operatingTime,

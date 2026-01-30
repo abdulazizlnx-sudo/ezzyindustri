@@ -39,7 +39,11 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">&nbsp;</label>
-                    <a href="<?php echo e(route('manajerial.oee.dashboard.pdf')); ?>" 
+                    <a href="<?php echo e(route('manajerial.oee.dashboard.pdf', [
+                        'startDate' => $startDate,
+                        'endDate' => $endDate,
+                        'selectedShift' => $selectedShift
+                    ])); ?>" 
                        class="btn btn-danger d-block" 
                        target="_blank">
                         <i class="bi bi-file-pdf"></i> Download PDF

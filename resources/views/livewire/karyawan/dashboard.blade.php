@@ -26,6 +26,9 @@
                         Bulan Ini
                     </button>
                 </div>
+                <button wire:click="refreshDashboard" class="btn btn-info">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
                 <div class="date-display">
                     <i class="bi bi-calendar3"></i>
                     <span>{{ $startDate->format('d M Y') }} - {{ $endDate->format('d M Y') }}</span>
@@ -70,8 +73,10 @@
             <div class="card">
                 <div class="card-body">
                     <h6 class="card-subtitle mb-2 text-muted">Quality Rate</h6>
-                    <h2 class="card-title mb-2">{{ $oeeData?->quality_rate ?? 0 }}%</h2>
+                    <h2 class="card-title mb-2">{{ number_format($qualityRate, 1) }}%</h2>
                     <p class="card-text text-muted">tingkat kualitas</p>
+                    <!-- Debug info -->
+                    <small class="text-muted">Debug: {{ $todayProduction }} prod, {{ $todayDefects }} defects</small>
                 </div>
             </div>
         </div>
@@ -84,9 +89,11 @@
                 <div class="card-body">
                     <h5 class="card-title">OEE Performance</h5>
                     <div class="mt-4">
+                        <!-- Debug info -->
+                        <small class="text-muted">Debug OEE: {{ $oeeData ? 'Data exists' : 'No data' }}</small>
                         <div class="d-flex justify-content-between mb-3">
                             <span>Availability Rate</span>
-                            <span class="fw-bold">{{ $oeeData?->availability_rate ?? 0 }}%</span>
+                            <span class="fw-bold">{{ number_format($oeeData?->availability_rate ?? 0, 1) }}%</span>
                         </div>
                         <div class="progress mb-4">
                             <div class="progress-bar bg-primary" style="width: {{ $oeeData?->availability_rate ?? 0 }}%"></div>
@@ -94,7 +101,7 @@
 
                         <div class="d-flex justify-content-between mb-3">
                             <span>Performance Rate</span>
-                            <span class="fw-bold">{{ $oeeData?->performance_rate ?? 0 }}%</span>
+                            <span class="fw-bold">{{ number_format($oeeData?->performance_rate ?? 0, 1) }}%</span>
                         </div>
                         <div class="progress mb-4">
                             <div class="progress-bar bg-success" style="width: {{ $oeeData?->performance_rate ?? 0 }}%"></div>
@@ -102,7 +109,7 @@
 
                         <div class="d-flex justify-content-between mb-3">
                             <span>Quality Rate</span>
-                            <span class="fw-bold">{{ $oeeData?->quality_rate ?? 0 }}%</span>
+                            <span class="fw-bold">{{ number_format($oeeData?->quality_rate ?? 0, 1) }}%</span>
                         </div>
                         <div class="progress mb-4">
                             <div class="progress-bar bg-info" style="width: {{ $oeeData?->quality_rate ?? 0 }}%"></div>
@@ -110,7 +117,7 @@
 
                         <div class="d-flex justify-content-between">
                             <span class="fw-bold">Overall OEE</span>
-                            <span class="fw-bold">{{ $oeeData?->oee_score ?? 0 }}%</span>
+                            <span class="fw-bold">{{ number_format($oeeData?->oee_score ?? 0, 1) }}%</span>
                         </div>
                     </div>
                 </div>

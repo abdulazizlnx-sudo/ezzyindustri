@@ -31,7 +31,13 @@
         })
         .then(data => {
             if (data.success) {
-                @this.set('cloudinary_url', data.url);
+                console.log('Upload successful:', {
+                    url: data.url,
+                    public_id: data.public_id,
+                    url_with_version: data.url_with_version
+                });
+                // Use the URL with version for proper Cloudinary access
+                @this.set('cloudinary_url', data.url_with_version || data.url);
                 @this.set('cloudinary_id', data.public_id);
             } else {
                 throw new Error(data.error || 'Terjadi kesalahan saat upload');
@@ -81,9 +87,10 @@
 
         @if($cloudinary_url)
             <div class="mt-2 position-relative">
-                <img src="{{ $cloudinary_url }}" 
+                <img src="{{ $cloudinary_url }}?t={{ time() }}" 
                      class="img-thumbnail" 
-                     style="max-height: 200px">
+                     style="max-height: 200px"
+                     @load="$dispatch('imageLoaded')">
                 <button type="button" 
                         class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
                         wire:click="removeImage">
